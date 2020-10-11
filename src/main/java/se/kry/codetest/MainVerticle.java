@@ -10,9 +10,9 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MainVerticle extends AbstractVerticle {
@@ -61,7 +61,7 @@ public class MainVerticle extends AbstractVerticle {
             services.put(result.getString("url"), "UNKNOWN");
             jsonServices.add(new JsonObject()
                   .put("name", result.getString("url"))
-                  .put("status", "UNKNOWN"));
+                  .put("status", "UNKNOWN").put("addTime", result.getString("addTime")));
           }
 
           req.response()
@@ -87,8 +87,13 @@ public class MainVerticle extends AbstractVerticle {
      */
     router.post("/service").handler(req -> {
       JsonObject jsonBody = req.getBodyAsJson();
-      String insertQuery = "INSERT INTO service VALUES (?)";
-      JsonArray params = new JsonArray().add(jsonBody.getString("url"));
+
+      String insertQuery = "INSERT INTO service VALUES (?,?,?)";
+      // insert time
+      Date time = Calendar.getInstance().getTime();
+      DateFormat format = new SimpleDateFormat("MM-dd-yyyy HH:mm");
+      String insertTimeStr = format.format(time);
+      JsonArray params = new JsonArray().add(jsonBody.getString("url")).add(insertTimeStr);
       connector.update(insertQuery, params).setHandler(done -> {
         if(done.succeeded()) {
           services.put(jsonBody.getString("url"), "UNKNOWN");
