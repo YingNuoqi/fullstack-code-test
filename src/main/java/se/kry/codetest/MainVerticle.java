@@ -47,11 +47,11 @@ public class MainVerticle extends AbstractVerticle {
   private void setRoutes(Router router){
     router.route("/*").handler(StaticHandler.create());
     /**
-     * router.get(String path)
-     * Add a route that matches a HTTP GET request and the specified path
+     * Get services
      */
     router.get("/service").handler(req -> {
       String getAllQuery = "SELECT * FROM service";
+      // get data from db
       connector.query(getAllQuery).setHandler(res -> {
         if(res.succeeded()) {
           List<JsonObject> jsonServices = new ArrayList<>();
@@ -83,7 +83,7 @@ public class MainVerticle extends AbstractVerticle {
 
     });
     /**
-     * Add a route that matches a HTTP POST request and the specified path
+     * Insert a service
      */
     router.post("/service").handler(req -> {
       JsonObject jsonBody = req.getBodyAsJson();
@@ -91,12 +91,27 @@ public class MainVerticle extends AbstractVerticle {
       JsonArray params = new JsonArray().add(jsonBody.getString("url"));
       connector.update(insertQuery, params).setHandler(done -> {
         if(done.succeeded()) {
-          System.out.println("insert succeeded...--------");
-
           services.put(jsonBody.getString("url"), "UNKNOWN");
           req.response()
                   .putHeader("content-type", "text/plain")
                   .end("OK");
+        } else {
+          done.cause().printStackTrace();
+        }
+      });
+    });
+
+    /**
+     * Delete a service
+     */
+    router.delete("/service").handler(req -> {
+      JsonObject jsonBody = req.getBodyAsJson();
+      String deleteQuery = "DELETE FROM service WHERE url=?";
+      JsonArray params = new JsonArray().add(jsonBody.getString("url"));
+      connector.update(deleteQuery, params).setHandler(done -> {
+        if(done.succeeded()) {
+          services.remove(jsonBody.getString("url"));
+          req.response().end("OK");
         } else {
           done.cause().printStackTrace();
         }

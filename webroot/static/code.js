@@ -4,8 +4,21 @@ fetch(servicesRequest)
 .then(function(response) { return response.json(); })
 .then(function(serviceList) {
   serviceList.forEach(service => {
-    var li = document.createElement("li");
-    li.appendChild(document.createTextNode(service.name + ': ' + service.status));
+    const li = document.createElement("li");
+    li.appendChild(document.createTextNode(service.name + ':' + service.status));
+    // delete button
+    const deleteBtn = document.createElement("button");
+    deleteBtn.appendChild(document.createTextNode("Delete"));
+    li.appendChild(deleteBtn);
+    // delete button event
+    deleteBtn.addEventListener("click", evt => {
+        fetch(`/service`, {
+            method: 'delete',
+            body: JSON.stringify({url: service.name})
+        }).then(res => {
+            location.reload();
+        });
+    });
     listContainer.appendChild(li);
   });
 });
