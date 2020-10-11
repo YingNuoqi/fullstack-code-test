@@ -14,11 +14,13 @@ const saveButton = document.querySelector('#post-service');
 saveButton.onclick = evt => {
     let urlName = document.querySelector('#url-name').value;
     fetch('/service', {
-    method: 'post',
-    headers: {
-    'Accept': 'application/json, text/plain, */*',
-    'Content-Type': 'application/json'
-    },
-  body: JSON.stringify({url:urlName})
-}).then(res=> location.reload());
+        method: 'post',
+        headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({url:urlName})
+    }).then(res=> {
+    location.reload()
+});
 }
