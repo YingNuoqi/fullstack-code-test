@@ -1,5 +1,6 @@
+let services;
+// dom nodes
 const listContainer = document.querySelector('#service-list');
-
 const statusOkNode = document.getElementsByClassName("status-ok").item(0);
 const statusFailNode = document.getElementsByClassName('status-fail').item(0);
 const statusUnknownNode = document.getElementsByClassName('status-unknown').item(0);
@@ -8,97 +9,141 @@ const addRemarkNode = document.getElementsByClassName('add-remark').item(0);
 
 // get services
 let servicesRequest = new Request('/service');
+const fetchServices = () => {
+    fetch(servicesRequest)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (serviceList) {
+            services = serviceList;
 
-fetch(servicesRequest)
-    .then(function (response) {
-        return response.json();
-    })
-    .then(function (serviceList) {
-        serviceList.forEach(service => {
-            const li = document.createElement("li");
-            li.classList.add("collection-item");
-            li.classList.add("row");
+            serviceList.forEach(service => {
+                const li = document.createElement("li");
+                li.classList.add("collection-item");
+                li.classList.add("row");
+                li.classList.add("li-"+service.name);
 
-            // status
-            let status = service.status === null ? "UNKNOWN" : service.status;
-            let iconNode;
-            switch (status) {
-                case "OK":
-                    iconNode = statusOkNode.cloneNode(true);
-                    break;
-                case "FAIL":
-                    iconNode = statusFailNode.cloneNode(true);
-                    break;
-                default:
-                    iconNode = statusUnknownNode.cloneNode(true);
-                    break;
-            }
-            li.appendChild(iconNode);
-            // url + time
-            const urlDivNode = document.createElement("div");
-            urlDivNode.classList.add("col");
-            // url
-            const urlTextNode = document.createElement("p");
-            urlTextNode.appendChild(document.createTextNode(service.name));
-            urlDivNode.appendChild(urlTextNode);
-            // time
-            const timeNode = document.createElement("p");
-            timeNode.classList.add("time-div");
-            timeNode.appendChild(document.createTextNode("Created at " + service.addTime));
-            urlDivNode.appendChild(timeNode);
-            li.appendChild(urlDivNode);
-
-            // name (add remark)
-            const remarkDivNode = addRemarkNode.cloneNode(true);
-            const remarkInputNode = document.createElement("input");
-            remarkInputNode.type = "text";
-            remarkInputNode.id = service.name;
-            remarkInputNode.classList.add("remark")
-
-            if (service.remark != null) {
-                remarkInputNode.value = service.remark;
-            }
-            remarkInputNode.addEventListener("blur", ev => {
-                const remarkVal = document.getElementById(service.name).value;
-                if (remarkVal) {
-                    console.log(document.getElementById(service.name).value);
-
-                    fetch(`/service`, {
-                        method: 'put',
-                        headers: {
-                            'Accept': 'application/json, text/plain, */*',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({url: service.name, remark: remarkVal})
-                    }).then(res => {
-                        // location.reload()
-                    });
+                // status
+                let status = service.status === null ? "UNKNOWN" : service.status;
+                let iconNode;
+                switch (status) {
+                    case "OK":
+                        iconNode = statusOkNode.cloneNode(true);
+                        break;
+                    case "FAIL":
+                        iconNode = statusFailNode.cloneNode(true);
+                        break;
+                    default:
+                        iconNode = statusUnknownNode.cloneNode(true);
+                        break;
                 }
-            });
-            remarkDivNode.appendChild(remarkInputNode);
-            const remarkLabelNode = document.createElement("label");
-            remarkLabelNode.classList.add("active");
-            remarkLabelNode.setAttribute("for", service.name);
-            remarkLabelNode.appendChild(document.createTextNode("Name Remark"));
-            remarkDivNode.appendChild(remarkLabelNode);
-            li.appendChild(remarkDivNode);
+                iconNode.id = "statusID"+service.name;
+                li.appendChild(iconNode);
+                // url + time
+                const urlDivNode = document.createElement("div");
+                urlDivNode.classList.add("col");
+                // url
+                const urlTextNode = document.createElement("p");
+                urlTextNode.appendChild(document.createTextNode(service.name));
+                urlDivNode.appendChild(urlTextNode);
+                // time
+                const timeNode = document.createElement("p");
+                timeNode.classList.add("time-div");
+                timeNode.appendChild(document.createTextNode("Created at " + service.addTime));
+                urlDivNode.appendChild(timeNode);
+                li.appendChild(urlDivNode);
 
-            // delete button
-            const deleteButton = deleteBtn.cloneNode(true);
-            li.appendChild(deleteButton);
-            // click event
-            deleteButton.addEventListener("click", evt => {
-                fetch(`/service`, {
-                    method: 'delete',
-                    body: JSON.stringify({url: service.name})
-                }).then(res => {
-                    location.reload();
+                // name (add remark)
+                const remarkDivNode = addRemarkNode.cloneNode(true);
+                const remarkInputNode = document.createElement("input");
+                remarkInputNode.type = "text";
+                remarkInputNode.id = service.name;
+                remarkInputNode.classList.add("remark")
+
+                if (service.remark != null) {
+                    remarkInputNode.value = service.remark;
+                }
+                remarkInputNode.addEventListener("blur", ev => {
+                    const remarkVal = document.getElementById(service.name).value;
+                    if (remarkVal) {
+                        console.log(document.getElementById(service.name).value);
+
+                        fetch(`/service`, {
+                            method: 'put',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({url: service.name, remark: remarkVal})
+                        }).then(res => {
+                            // location.reload()
+                        });
+                    }
                 });
-            });
+                remarkDivNode.appendChild(remarkInputNode);
+                const remarkLabelNode = document.createElement("label");
+                remarkLabelNode.classList.add("active");
+                remarkLabelNode.setAttribute("for", service.name);
+                remarkLabelNode.appendChild(document.createTextNode("Name Remark"));
+                remarkDivNode.appendChild(remarkLabelNode);
+                li.appendChild(remarkDivNode);
 
-            listContainer.appendChild(li);
+                // delete button
+                const deleteButton = deleteBtn.cloneNode(true);
+                li.appendChild(deleteButton);
+                // click event
+                deleteButton.addEventListener("click", evt => {
+                    fetch(`/service`, {
+                        method: 'delete',
+                        body: JSON.stringify({url: service.name})
+                    }).then(res => {
+                        location.reload();
+                    });
+                });
+
+                listContainer.appendChild(li);
+            });
         });
-    });
+}
+// when load/reload the page
+fetchServices();
+
+// polling
+const updateStatus = () => {
+    fetch(servicesRequest)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(serviceList => {
+            if(services !== serviceList) {
+                serviceList.forEach(service => {
+
+                    // status
+                    let status = service.status === null ? "UNKNOWN" : service.status;
+                    let iconNode;
+                    switch (status) {
+                        case "OK":
+                            iconNode = statusOkNode.cloneNode(true);
+                            break;
+                        case "FAIL":
+                            iconNode = statusFailNode.cloneNode(true);
+                            break;
+                        default:
+                            iconNode = statusUnknownNode.cloneNode(true);
+                            break;
+                    }
+
+                    const liNode = document.getElementsByClassName("li-"+service.name)[0];
+                    // if the status changed, then update the dom
+                    if(iconNode?.classList !== document.getElementById("statusID"+service.name)?.classList) {
+                        liNode.replaceChild(iconNode, liNode.childNodes[0]);
+                    }
+                });
+            }
+        })
+}
+setInterval(updateStatus, 1000*5);
+
 
 // add a service
 const saveButton = document.querySelector('#post-service');
