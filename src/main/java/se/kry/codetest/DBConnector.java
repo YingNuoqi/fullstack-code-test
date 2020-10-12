@@ -11,71 +11,75 @@ import io.vertx.ext.sql.UpdateResult;
 
 public class DBConnector {
 
-  private final String DB_PATH = "poller.db";
-  private final SQLClient client;
+    private final String DB_PATH = "poller.db";
+    private final SQLClient client;
 
-  public DBConnector(Vertx vertx){
-    JsonObject config = new JsonObject()
-        .put("url", "jdbc:sqlite:" + DB_PATH)
-        .put("driver_class", "org.sqlite.JDBC")
-        .put("max_pool_size", 30);
+    public DBConnector(Vertx vertx) {
+        JsonObject config = new JsonObject()
+                .put("url", "jdbc:sqlite:" + DB_PATH)
+                .put("driver_class", "org.sqlite.JDBC")
+                .put("max_pool_size", 30);
 
-    client = JDBCClient.createShared(vertx, config);
-  }
-
-  /**
-   * Search data / Get data
-   * @param query
-   * @return
-   */
-  public Future<ResultSet> query(String query) {
-    return query(query, new JsonArray());
-  }
-  public Future<ResultSet> query(String query, JsonArray params) {
-    if(query == null || query.isEmpty()) {
-      return Future.failedFuture("Query is null or empty");
-    }
-    if(!query.endsWith(";")) {
-      query = query + ";";
+        client = JDBCClient.createShared(vertx, config);
     }
 
-    Future<ResultSet> queryResultFuture = Future.future();
-
-    client.queryWithParams(query, params, result -> {
-      if(result.failed()){
-        queryResultFuture.fail(result.cause());
-      } else {
-        queryResultFuture.complete(result.result());
-      }
-    });
-    return queryResultFuture;
-  }
-
-  /**
-   * Insert/Delete/Update date
-   * @param query
-   * @return
-   */
-  public Future<UpdateResult> update(String query) {
-    return update(query, new JsonArray());
-  }
-  public Future<UpdateResult> update(String query, JsonArray params) {
-    if(query == null || query.isEmpty()) {
-      return Future.failedFuture("Query is null or empty");
+    /**
+     * Search data / Get data
+     *
+     * @param query
+     * @return
+     */
+    public Future<ResultSet> query(String query) {
+        return query(query, new JsonArray());
     }
-    if(!query.endsWith(";")) {
-      query = query + ";";
+
+    public Future<ResultSet> query(String query, JsonArray params) {
+        if (query == null || query.isEmpty()) {
+            return Future.failedFuture("Query is null or empty");
+        }
+        if (!query.endsWith(";")) {
+            query = query + ";";
+        }
+
+        Future<ResultSet> queryResultFuture = Future.future();
+
+        client.queryWithParams(query, params, result -> {
+            if (result.failed()) {
+                queryResultFuture.fail(result.cause());
+            } else {
+                queryResultFuture.complete(result.result());
+            }
+        });
+        return queryResultFuture;
     }
-    Future<UpdateResult> updateResultFuture = Future.future();
-    client.updateWithParams(query, params, result -> {
-      if(result.failed()){
-        updateResultFuture.fail(result.cause());
-      } else {
-        updateResultFuture.complete(result.result());
-      }
-    });
-    return updateResultFuture;
-  }
+
+    /**
+     * Insert/Delete/Update date
+     *
+     * @param query
+     * @return
+     */
+    public Future<UpdateResult> update(String query) {
+        return update(query, new JsonArray());
+    }
+
+    public Future<UpdateResult> update(String query, JsonArray params) {
+        if (query == null || query.isEmpty()) {
+            return Future.failedFuture("Query is null or empty");
+        }
+        if (!query.endsWith(";")) {
+            query = query + ";";
+        }
+        Future<UpdateResult> updateResultFuture = Future.future();
+        client.updateWithParams(query, params, result -> {
+            if (result.failed()) {
+                updateResultFuture.fail(result.cause());
+            } else {
+                updateResultFuture.complete(result.result());
+            }
+        });
+        return updateResultFuture;
+    }
 
 
 }
