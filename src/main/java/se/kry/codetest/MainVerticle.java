@@ -67,7 +67,7 @@ public class MainVerticle extends AbstractVerticle {
             }
             jsonServices.add(new JsonObject()
                   .put("name", result.getString("url"))
-                  .put("status", services.get(result.getString("url"))).put("addTime", result.getString("addTime")));
+                  .put("status", services.get(result.getString("url"))).put("addTime", result.getString("addTime")).put("remark", result.getString("remark")));
           }
 
           req.response()
@@ -113,6 +113,29 @@ public class MainVerticle extends AbstractVerticle {
     });
 
     /**
+     * update partially
+     */
+    router.put("/service").handler(req -> {
+      JsonObject jsonBody = req.getBodyAsJson();
+      String patchQuery = "UPDATE service SET remark=? WHERE url=?";
+      JsonArray params = new JsonArray().add(jsonBody.getString("remark")).add(jsonBody.getString("url"));
+      connector.update(patchQuery, params).setHandler(done -> {
+        if(done.succeeded()) {
+          if(services.get("remark") != null) {
+            services.replace("remark", services.get("remark"), jsonBody.getString("remark"));
+          } else {
+            services.put("remark", jsonBody.getString("remark"));
+            req.response()
+                    .putHeader("content-type", "text/plain")
+                    .end("OK");
+          }
+        } else {
+          done.cause().printStackTrace();
+        }
+      });
+    });
+
+    /**
      * Delete a service
      */
     router.delete("/service").handler(req -> {
@@ -128,8 +151,8 @@ public class MainVerticle extends AbstractVerticle {
         }
       });
     });
-  }
 
+  }
 }
 
 

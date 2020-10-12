@@ -16,20 +16,24 @@ public class BackgroundPoller  {
     List<String> list = new ArrayList<>();
     Future<List<String>> resultFuture = Future.future();
     for (Map.Entry<String, String> entry: services.entrySet()) {
+      try {
+        webClient.getAbs(entry.getKey()).ssl(entry.getKey().contains("https")).send(res -> {
+          if(res.succeeded()) {
+            services.replace(entry.getKey(), entry.getValue(), STATUS_OK);
+          } else {
+            services.replace(entry.getKey(), entry.getValue(), STATUS_FAIL);
+          }
+          list.add(entry.getKey());
+        });
+      } catch (Exception e) {
+        System.out.println(e);
+      }
 
-      webClient.getAbs(entry.getKey()).ssl(entry.getKey().contains("https")).send(res -> {
-        if(res.succeeded()) {
-          services.replace(entry.getKey(), entry.getValue(), STATUS_OK);
-        } else {
-          services.replace(entry.getKey(), entry.getValue(), STATUS_FAIL);
-        }
-        list.add(entry.getKey());
-      });
     }
     // for test
-//    for (Map.Entry<String, String> entry: services.entrySet()) {
-//      System.out.println(entry.getKey() + "--" + entry.getValue());
-//    }
+    for (Map.Entry<String, String> entry: services.entrySet()) {
+      System.out.println(entry.getKey() + "--" + entry.getValue());
+    }
 
     if(list.size() == services.size()) {
       resultFuture.complete(list);
