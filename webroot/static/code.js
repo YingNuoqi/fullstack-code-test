@@ -5,7 +5,8 @@ fetch(servicesRequest)
 .then(function(serviceList) {
   serviceList.forEach(service => {
     const li = document.createElement("li");
-    li.appendChild(document.createTextNode(service.name + ':' + service.status + ". (Created at " + service.addTime + ")"));
+    let status = service.status===null ? "UNKNOWN" : service.status;
+    li.appendChild(document.createTextNode(service.name + ':' + status + ". (Created at " + service.addTime + ") "));
     // delete button
     const deleteBtn = document.createElement("button");
     deleteBtn.appendChild(document.createTextNode("Delete"));

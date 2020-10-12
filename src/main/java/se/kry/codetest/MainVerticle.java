@@ -6,6 +6,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
@@ -28,8 +29,11 @@ public class MainVerticle extends AbstractVerticle {
 
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
-    services.put("https://www.kry.se", "UNKNOWN");
-    vertx.setPeriodic(1000 * 60, timerId -> poller.pollServices(services));
+//    services.put("https://www.kry.se", "UNKNOWN");
+
+    WebClient webClient = WebClient.create(vertx);
+    vertx.setPeriodic(1000 * 10, timerId -> poller.pollServices(services, webClient));
+
     setRoutes(router);
     vertx
         .createHttpServer()
@@ -58,10 +62,12 @@ public class MainVerticle extends AbstractVerticle {
 
           List<JsonObject> results = res.result().getRows();
           for(JsonObject result: results) {
-            services.put(result.getString("url"), "UNKNOWN");
+            if(services.get(result.getString("url")) == null) {
+              services.put(result.getString("url"), "UNKNOWN");
+            }
             jsonServices.add(new JsonObject()
                   .put("name", result.getString("url"))
-                  .put("status", "UNKNOWN").put("addTime", result.getString("addTime")));
+                  .put("status", services.get(result.getString("url"))).put("addTime", result.getString("addTime")));
           }
 
           req.response()
